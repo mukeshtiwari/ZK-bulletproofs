@@ -20,50 +20,52 @@ def addd(A, B, C):
 # EC addition example: add(multiply(G, 42), multiply(G, 100))
 
 # remember to do all arithmetic modulo p
-def commit(a, sL, b, sR, alpha, beta, gamma, tau_1, tau_2):
-    pass
-    # return (A, S, V, T1, T2)
+def commit(a_0, a_1, b_0, b_1, alpha, beta, tau_0, tau_1, tau_2):
+    A = addd(multiply(G, a_0 % p), multiply(H, b_0 % p), multiply(B, alpha % p)) # A = a_0 * G + b_0 * H + alpha * B
+    S = addd(multiply(G, a_1 % p), multiply(H, b_1 % p), multiply(B, beta % p)) # S = a_1 * G + b_1 * H + beta * B
+    V = add(multiply(G, (a_0 * b_0) % p), multiply(B, tau_0 % p)) # V = a_0 * b_0 * G + tau_0 * B
+    T1 = add (multiply(G, (a_0 * b_1 + a_1 * b_0) % p), multiply(B, tau_1 % p))  # T1 = a_0 * b_1 * G + a_1 * b_0 * G + tau_1 * B
+    T2 = add (multiply(G, (a_1 * b_1) % p), multiply(B, tau_2 % p)) # T2 = a_1 * b_1 * G + tau_2 * B
+    return (A, S, V, T1, T2)
 
 
 def evaluate(f_0, f_1, f_2, u):
     return (f_0 + f_1 * u + f_2 * u**2) % p
 
 def prove(blinding_0, blinding_1, blinding_2, u):
-    # fill this in
-    # return pi
-    pass
+    return (blinding_0 + blinding_1 * u + blinding_2 * u**2) % p
 
 ## step 0: Prover and verifier agree on G and B
 
 ## step 1: Prover creates the commitments
-a = ...
-b = ...
-sL = ...
-sR = ...
-t1 = ...
-t2 = ...
+a_0 = random_element()
+b_0 = random_element()
+a_1 = random_element()
+b_1 = random_element()
+t1 = (a_0 * b_1 + a_1 * b_0) % p
+t2 = (a_1 * b_1) % p
 
 ### blinding terms
-alpha = ...
-beta = ...
-gamma = ...
-tau_1 = ...
-tau_2 = ...
+alpha = random_element()
+beta = random_element()
+tau_0 = random_element()
+tau_1 = random_element()
+tau_2 = random_element()
 
-A, S, V, T1, T2 = commit(a, sL, b, sR, alpha, beta, gamma, tau_1, tau_2)
+A, S, V, T1, T2 = commit(a_0, a_1, b_0, b_1, alpha, beta, tau_0, tau_1, tau_2)
 
 ## step 2: Verifier picks u
-u = ...
+u = random_element()
 
 ## step 3: Prover evaluates l(u), r(u), t(u) and creates evaluation proofs
-l_u = evaluate(a, sL, 0, u)
-r_u = evaluate(b, sR, 0, u)
-t_u = evaluate(a*b, t1, t2, u)
+l_u = evaluate(a_0, a_1, 0, u)
+r_u = evaluate(b_0, b_1, 0, u)
+t_u = evaluate(a_0*b_0, t1, t2, u)
 
 pi_lr = prove(alpha, beta, 0, u)
-pi_t = prove(gamma, tau_1, tau_2, u)
+pi_t = prove(tau_0, tau_1, tau_2, u)
 
 ## step 4: Verifier accepts or rejects
-assert t_u == (l_u * r_u) % p, "tu != lu*ru"
+assert t_u  == (l_u * r_u) % p, "tu != lu*ru"
 assert eq(add(A, multiply(S, u)), addd(multiply(G, l_u), multiply(H, r_u), multiply(B, pi_lr))), "l_u or r_u not evaluated correctly"
 assert eq(add(multiply(G, t_u), multiply(B, pi_t)), addd(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
