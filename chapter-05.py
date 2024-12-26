@@ -32,41 +32,47 @@ B = (FQ(128486065350455871287888893172307515183924786911123755697753900951123306
 # scalar multiplication example: multiply(G, 42)
 # EC addition example: add(multiply(G, 42), multiply(G, 100))
 
+def inner_product(a, b):
+    return sum((ai * bi) % p for ai, bi in zip(a, b)) % p
+
 # remember to do all arithmetic modulo p
-def commit(a, sL, b, sR, alpha, beta, gamma, tau_1, tau_2):
-    pass
-    # return (A, S, V, T1, T2)
+def commit(a, sL, b, sR, alpha, beta, tau_0, tau_1, tau_2):
+    A = add_points(vector_commit(G, a), vector_commit(H, b), multiply(B, alpha % p))  # A = <a, G> + <b, H> + alpha * B 
+    S = add_points(vector_commit(G, sL), vector_commit(H, sR), multiply(B, beta % p)) # S = <sL, G> + <sR, H> + beta * B
+    v = inner_product(a, b) % p
+    V = add(multiply(G[0], v), multiply(B, tau_0 % p))                      # V = v * G + tau_0 * B
+    T1 = add(multiply(G[0], inner_product(a, sR) + inner_product(sL, b)), multiply(B, tau_1 % p))  # T1 = (<a, sR> + <sL, b>) * G + tau_1 * B
+    T2 = add(multiply(G[0], inner_product(sL, sR)), multiply(B, tau_2))        # T2 = <sL, sR> * G + tau_2 * B
+    return (A, S, V, T1, T2)
 
 
 def evaluate(f_0, f_1, f_2, u):
-    return (f_0 + f_1 * u + f_2 * u**2) % p
+    return (f_0 + f_1 * u + f_2 * pow(u, 2, p)) % p
 
 def prove(blinding_0, blinding_1, blinding_2, u):
-    # fill this in
-    # return pi
-    pass
+    return (blinding_0 + blinding_1 * u + blinding_2 * pow(u, 2, p)) % p
 
 ## step 0: Prover and verifier agree on G and B
 
 ## step 1: Prover creates the commitments
-a = np.array([89,15,90,22])
-b = np.array([16,18,54,12])
-sL = ...
-sR = ...
-t1 = ...
-t2 = ...
+a = np.array([89,15,90,22], dtype=object)
+b = np.array([16,18,54,12], dtype=object)    
+sL = np.array([random_element()  for _ in range(4)], dtype=object)
+sR = np.array([random_element() for _ in range(4)], dtype=object)
+t1 = (inner_product(a, sR) % p + inner_product (sL, b) % p) % p 
+t2 = inner_product(sL, sR) % p
 
 ### blinding terms
-alpha = ...
-beta = ...
-gamma = ...
-tau_1 = ...
-tau_2 = ...
+alpha = random_element()
+beta = random_element()
+tau_0 = random_element()
+tau_1 = random_element()
+tau_2 = random_element()
 
-A, S, V, T1, T2 = commit(a, sL, b, sR, alpha, beta, gamma, tau_1, tau_2)
+A, S, V, T1, T2 = commit(a, sL, b, sR, alpha, beta, tau_0, tau_1, tau_2)
 
 ## step 2: Verifier picks u
-u = ...
+u = random_element()
 
 ## step 3: Prover evaluates l(u), r(u), t(u) and creates evaluation proofs
 l_u = evaluate(a, sL, 0, u)
@@ -74,9 +80,11 @@ r_u = evaluate(b, sR, 0, u)
 t_u = evaluate(np.inner(a,b), t1, t2, u)
 
 pi_lr = prove(alpha, beta, 0, u)
-pi_t = prove(gamma, tau_1, tau_2, u)
+pi_t = prove(tau_0, tau_1, tau_2, u)
 
 ## step 4: Verifier accepts or rejects
-assert t_u == np.mod(np.inner(np.array(l_u), np.array(r_u)), p), "tu !=〈lu, ru〉"
-assert eq(add(A, commit(S, u)), add_points(vector_commit(G, l_u), vector_commit(H, r_u), multiply(B, pi_lr))), "l_u or r_u not evaluated correctly"
-assert eq(add(multiply(G, t_u), multiply(B, pi_t)), add_points(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
+assert t_u == inner_product(np.array(l_u), np.array(r_u)) , "tu !=〈lu, ru〉"
+assert eq(add(A, multiply(S, u)), add_points(vector_commit(G, l_u), vector_commit(H, r_u), multiply(B, pi_lr))), "l_u or r_u not evaluated correctly"#
+assert eq(add(multiply(G[0], t_u), multiply(B, pi_t)), add_points(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
+
+
