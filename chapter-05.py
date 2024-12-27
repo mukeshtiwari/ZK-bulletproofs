@@ -29,6 +29,9 @@ H = [(FQ(13728162449721098615672844430261112538072166300311022796820929618959450
 
 B = (FQ(12848606535045587128788889317230751518392478691112375569775390095112330602489), FQ(18818936887558347291494629972517132071247847502517774285883500818572856935411))
 
+G0 = (FQ(6125972251657196780987890600172332543605156714014868370864394145960097450120), FQ(13002410865648575680845659642094449795429989432234302858925183669063743123901))
+
+
 # scalar multiplication example: multiply(G, 42)
 # EC addition example: add(multiply(G, 42), multiply(G, 100))
 
@@ -36,13 +39,17 @@ def inner_product(a, b):
     return sum((ai * bi) % p for ai, bi in zip(a, b)) % p
 
 # remember to do all arithmetic modulo p
+# elliptic curve point G (separate from \bold{G}) which will be used for committing
+#  the coefficients of t(x) and the inner product committed to V
+# I am reusing G[0] so I have picked a new G point G0 but I don't have 
+# a proof that it is secure. 
 def commit(a, sL, b, sR, alpha, beta, tau_0, tau_1, tau_2):
     A = add_points(vector_commit(G, a), vector_commit(H, b), multiply(B, alpha % p))  # A = <a, G> + <b, H> + alpha * B 
     S = add_points(vector_commit(G, sL), vector_commit(H, sR), multiply(B, beta % p)) # S = <sL, G> + <sR, H> + beta * B
     v = inner_product(a, b) % p
-    V = add(multiply(G[0], v), multiply(B, tau_0 % p))                      # V = v * G + tau_0 * B
-    T1 = add(multiply(G[0], inner_product(a, sR) + inner_product(sL, b)), multiply(B, tau_1 % p))  # T1 = (<a, sR> + <sL, b>) * G + tau_1 * B
-    T2 = add(multiply(G[0], inner_product(sL, sR)), multiply(B, tau_2))        # T2 = <sL, sR> * G + tau_2 * B
+    V = add(multiply(G0, v), multiply(B, tau_0 % p))                      # V = v * G + tau_0 * B
+    T1 = add(multiply(G0, inner_product(a, sR) + inner_product(sL, b)), multiply(B, tau_1 % p))  # T1 = (<a, sR> + <sL, b>) * G + tau_1 * B
+    T2 = add(multiply(G0, inner_product(sL, sR)), multiply(B, tau_2))        # T2 = <sL, sR> * G + tau_2 * B
     return (A, S, V, T1, T2)
 
 
@@ -85,6 +92,6 @@ pi_t = prove(tau_0, tau_1, tau_2, u)
 ## step 4: Verifier accepts or rejects
 assert t_u == inner_product(np.array(l_u), np.array(r_u)) , "tu !=〈lu, ru〉"
 assert eq(add(A, multiply(S, u)), add_points(vector_commit(G, l_u), vector_commit(H, r_u), multiply(B, pi_lr))), "l_u or r_u not evaluated correctly"#
-assert eq(add(multiply(G[0], t_u), multiply(B, pi_t)), add_points(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
+assert eq(add(multiply(G0, t_u), multiply(B, pi_t)), add_points(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
 
 
