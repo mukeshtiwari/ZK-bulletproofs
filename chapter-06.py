@@ -40,7 +40,7 @@ def fold_points(point_vec, u):
 # return L, R as a tuple
 def compute_secondary_diagonal(G_vec, a):
     n = len(a)
-    L = add_points(*[multiply(G_vec[i], a[i-1]) for i in range(1, n, 2)])
+    L = add_points(*[multiply(G_vec[i+1], a[i]) for i in range(0, n, 2)])
     R = add_points(*[multiply(G_vec[i], a[i+1]) for i in range(0, n, 2)])
     return L, R
 
