@@ -23,18 +23,25 @@ G_vec = [(FQ(6286155310766333871795042970372566906087502116590250812133967451320
 
 # return a folded vector of length n/2 for scalars
 def fold(scalar_vec, u):
-    pass
-    # your code here
+    n = len(scalar_vec)
+    uinv = pow(u, -1, p)
+    assert 2 <= n, "n must be at least 2"
+    assert n % 2 == 0, "n must be even"
+    return [(scalar_vec[i] * u + scalar_vec[i + 1] * uinv) % p for i in range(0, n, 2)]
 
 # return a folded vector of length n/2 for points
 def fold_points(point_vec, u):
-    pass
-    # your code here
+    n = len(point_vec)
+    uinv = pow(u, -1, p)
+    assert 2 <= n, "n must be at least 2"
+    assert n % 2 == 0, "n must be even"
+    return [(add_points(multiply(point_vec[i], u), multiply(point_vec[i + 1], uinv))) for i in range(0, n, 2)]
 
 # return L, R as a tuple
 def compute_secondary_diagonal(G_vec, a):
-    pass
-    # your code here
+    L = add_points(*[multiply(G_vec[i], a[i-1]) for i in range(1, len(a), 2)])
+    R = add_points(*[multiply(G_vec[i], a[i+1]) for i in range(0, len(a), 2)])
+    return L, R
 
 a = [9,45,23,42]
 
@@ -54,3 +61,5 @@ Gprime = fold_points(G_vec, pow(u, -1, p))
 # verification check
 assert eq(vector_commit(Gprime, aprime), add_points(multiply(L, pow(u, 2, p)), A, multiply(R, pow(u, -2, p)))), "invalid proof"
 assert len(Gprime) == len(a) // 2 and len(aprime) == len(a) // 2, "proof must be size n/2"
+
+print("Proof is valid!")
