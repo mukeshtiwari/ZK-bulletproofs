@@ -65,7 +65,7 @@ def commitment_proof_log(P, G, H, Q, a, b):
     return commitment_proof_log(Pprime, Gprime, Hprime, Q, aprime, bprime)
 
 
-    
+
 def vector_commit(points, scalars):
     return reduce(add, [multiply(P, i) for P, i in zip(points, scalars)], Z1)
 

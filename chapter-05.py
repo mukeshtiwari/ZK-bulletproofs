@@ -88,4 +88,4 @@ assert t_u == inner_product(np.array(l_u), np.array(r_u)) , "tu !=〈lu, ru〉"
 assert eq(add(A, multiply(S, u)), add_points(vector_commit(G, l_u), vector_commit(H, r_u), multiply(B, pi_lr))), "l_u or r_u not evaluated correctly"#
 assert eq(add(multiply(G1, t_u), multiply(B, pi_t)), add_points(V, multiply(T1, u), multiply(T2, u**2 % p))), "t_u not evaluated correctly"
 
-
+print(G1)
