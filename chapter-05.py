@@ -34,17 +34,17 @@ B = (FQ(128486065350455871287888893172307515183924786911123755697753900951123306
 # EC addition example: add(multiply(G, 42), multiply(G, 100))
 
 def inner_product(a, b):
-    return sum((ai * bi) % p for ai, bi in zip(a, b)) % p
+  return sum((ai * bi) % p for ai, bi in zip(a, b)) % p
 
 # remember to do all arithmetic modulo p 
 def commit(a, sL, b, sR, alpha, beta, tau_0, tau_1, tau_2):
-    A = add_points(vector_commit(G, a), vector_commit(H, b), multiply(B, alpha % p))  # A = <a, G> + <b, H> + alpha * B 
-    S = add_points(vector_commit(G, sL), vector_commit(H, sR), multiply(B, beta % p)) # S = <sL, G> + <sR, H> + beta * B
-    v = inner_product(a, b) % p
-    V = add(multiply(G1, v), multiply(B, tau_0 % p))                      # V = v * G + tau_0 * B
-    T1 = add(multiply(G1, inner_product(a, sR) + inner_product(sL, b)), multiply(B, tau_1 % p))  # T1 = (<a, sR> + <sL, b>) * G + tau_1 * B
-    T2 = add(multiply(G1, inner_product(sL, sR)), multiply(B, tau_2))        # T2 = <sL, sR> * G + tau_2 * B
-    return (A, S, V, T1, T2)
+  A = add_points(vector_commit(G, a), vector_commit(H, b), multiply(B, alpha % p))  # A = <a, G> + <b, H> + alpha * B 
+  S = add_points(vector_commit(G, sL), vector_commit(H, sR), multiply(B, beta % p)) # S = <sL, G> + <sR, H> + beta * B
+  v = inner_product(a, b) % p
+  V = add(multiply(G1, v), multiply(B, tau_0 % p))                      # V = v * G + tau_0 * B
+  T1 = add(multiply(G1, inner_product(a, sR) + inner_product(sL, b)), multiply(B, tau_1 % p))  # T1 = (<a, sR> + <sL, b>) * G + tau_1 * B
+  T2 = add(multiply(G1, inner_product(sL, sR)), multiply(B, tau_2))        # T2 = <sL, sR> * G + tau_2 * B
+  return (A, S, V, T1, T2)
 
 
 def evaluate(f_0, f_1, f_2, u):
